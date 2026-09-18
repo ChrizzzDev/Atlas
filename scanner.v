@@ -22,7 +22,10 @@ const ignored_files = [
   '.so',
   '.class',
   '.o',
-  '.pyc'
+  '.pyc',
+  '.gitignore',
+  '.gitattributes',
+  '.editorconfig'
 ]
 
 fn is_ignored_directory(name string) bool {
