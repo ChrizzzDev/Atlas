@@ -8,7 +8,7 @@ Atlas analyzes a codebase and builds a map of its **structure, composition, and 
   <img src="https://img.shields.io/badge/status-in_development-orange?style=for-the-badge" alt="Status">
   <img src="https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/language-Vlang-5C6BC0?style=for-the-badge&logo=v&link=google.com" alt="V">
-  <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License>
+  <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License">
 </p>
 
 ---
@@ -40,19 +40,17 @@ And it builds a high-level map of the codebase.
 
 ```text
 ATLAS 🗺️
-──────────────────────────────
-
+────────────────────
 Project      atlas
-Root         /path/to/atlas
-Files        425
-Directories  49
-Size         74.96 KB
-Lines        74,960
+Root         /home/ttomer/projects/atlas
+Files        7
+Directories  0
+Size         19.91 KB
+Lines        1019
 
 Languages
-  TypeScript  311 files (73.18%)
-  Other       112 files (26.35%)
-  JavaScript  2 files (0.47%)
+  V      5 files (71.43%)
+  Other  2 files (28.57%)
 ```
 
 The goal is simple:
