@@ -1,6 +1,7 @@
 module main
 
 import term
+import strings
 
 struct Info {
   label string
@@ -51,7 +52,7 @@ fn human_readable_output(project Project) {
     Info{label: 'Files', value: '${project.files.len}'}
     Info{label: 'Directories', value: '${project.directories.len}'}
     Info{label: 'Size', value: format_size(project_size)}
-    Info{label: 'Lines', value: '${loc}' }
+    Info{label: 'Lines', value: format_loc(loc) }
   ])
 
   println('')
@@ -121,6 +122,34 @@ fn get_language_stats(used_languages map[string]int, total_files int) []Language
   })
 
   return languages
+}
+
+fn format_loc(lines int) string {
+  str := lines.str()
+  if str.len < 3 {
+    return str
+  }
+
+  mut sb := strings.new_builder(str.len + (str.len / 3))
+  mut count := 0
+
+  for i := str.len - 1; i >= 0; i-- {
+    ch := str[i]
+
+    if ch == `-` {
+      sb.write_byte(ch)
+      continue
+    }
+
+    if count > 0 && count % 3 == 0 {
+      sb.write_byte(` `)
+    }
+
+    sb.write_byte(ch)
+    count++
+  }
+
+  return sb.str().reverse()
 }
 
 fn format_size(bytes i64) string {
