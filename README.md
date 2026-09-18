@@ -466,7 +466,8 @@ atlas/
 ├── scanner.v
 ├── languages.v
 ├── v.mod
-└── README.md
+├── README.md
+└── ...
 ```
 
 Each component has a focused responsibility.
