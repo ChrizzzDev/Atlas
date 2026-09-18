@@ -43,14 +43,14 @@ ATLAS 🗺️
 ────────────────────
 Project      atlas
 Root         /home/ttomer/projects/atlas
-Files        7
+Files        8
 Directories  0
-Size         19.91 KB
-Lines        1019
+Size         20.94 KB
+Lines        1 068
 
 Languages
-  V      5 files (71.43%)
-  Other  2 files (28.57%)
+  V      5 files (62.50%)
+  Other  3 files (37.50%)
 ```
 
 The goal is simple:
@@ -206,20 +206,20 @@ Atlas separates its analysis into several pieces of information.
 
 ```
 Project      seyfert
-Root         /home/user/projects/seyfert
-Files        425
+Root         /home/ttomer/projects/seyfert
+Files        416
 Directories  49
-Size         74.96 KB
-Lines        74,960
+Size         2.59 MB
+Lines        74 144
 ```
 
 ### Languages
 
 ```
 Languages
-  TypeScript  311 files (73.18%)
-  Other       112 files (26.35%)
-  JavaScript  2 files (0.47%)
+  TypeScript  311 files (74.76%)
+  Other       103 files (24.76%)
+  JavaScript  2 files (0.48%)
 ```
 
 As Atlas evolves, these sections will become increasingly detailed.
@@ -229,7 +229,6 @@ As Atlas evolves, these sections will become increasingly detailed.
 # Supported languages
 
 Atlas currently recognizes the following extensions:
-
 
 <center>
   <table>
