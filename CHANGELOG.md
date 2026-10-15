@@ -2,6 +2,15 @@
 
 All notable changes to Atlas will be documented here.
 
+## [0.2.0] - 2026-10-15
+
+### Added
+
+- Project tree command with configurable depth
+- File type distribution and top-level directory summaries
+- JSON output and optional extension statistics
+- Improved filtering for generated files and directories
+
 ## [0.1.1] - 2026-09-18
 - Add formatting for LOC (according to ISO 80000-1:2022)
 - Add some config files to ignored files (.editorconfig, .gitattributes, .gitignore)

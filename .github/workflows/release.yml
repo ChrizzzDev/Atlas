@@ -46,7 +46,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          v -autofree -prod -o "dist/${{ matrix.artifact }}" .
+          v -prod -o "dist/${{ matrix.artifact }}" .
 
       - name: Verify binary
         shell: bash

@@ -2,11 +2,11 @@
 
 **Atlas is a command-line tool for exploring and understanding software projects.**
 
-Atlas analyzes a codebase and builds a map of its **structure, composition, and internal relationships**, giving developers a quick overview of what a project contains and how it is organized.
+Atlas analyzes a codebase and builds a map of its **structure and composition**, giving developers a quick overview of what a project contains and how it is organized.
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-in_development-orange?style=for-the-badge" alt="Status">
-  <img src="https://img.shields.io/badge/version-0.1.0-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.2.0-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/language-Vlang-5C6BC0?style=for-the-badge&logo=v&link=google.com" alt="V">
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License">
 </p>
@@ -90,7 +90,7 @@ It is a lightweight **codebase exploration and intelligence tool**.
 
 ### Current
 
-Atlas `v0.1` currently provides:
+Atlas `v0.2` currently provides:
 
 * Project discovery
 * File scanning
@@ -102,7 +102,11 @@ Atlas `v0.1` currently provides:
 * Programming language detection
 * Language statistics
 * Human-readable terminal output
-* Basic JSON output infrastructure
+* JSON output
+* Project tree with configurable depth (`atlas tree --depth N`)
+* File type distribution
+* Top-level directory summaries
+* Optional extension statistics (`--extensions`)
 
 ### Coming later
 
@@ -354,16 +358,16 @@ The project intentionally starts with simple and deterministic analysis before i
 - [x] Calculate project size
 - [x] Count physical lines
 - [x] Display language statistics
-- [ ] Improve generated-file detection
-- [ ] Improve edge-case handling
+- [x] Improve generated-file detection
+- [x] Improve edge-case handling
 
 ### v0.2 • Structure
 
-- [ ] Project tree
-- [ ] Directory hierarchy
-- [ ] `atlas tree`
-- [ ] File type distribution
-- [ ] Better project structure summaries
+- [x] Project tree
+- [x] Directory hierarchy
+- [x] `atlas tree`
+- [x] File type distribution
+- [x] Better project structure summaries
 
 ### v0.3 • Dependencies
 

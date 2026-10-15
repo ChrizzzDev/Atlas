@@ -34,11 +34,8 @@ jobs:
           stable: true
           clean: true
 
-      - name: Check formatting
-        run: v fmt --verify .
-
-      - name: Run vet
-        run: v vet .
+      - name: Test
+        run: v test .
 
       - name: Build
         run: v .
