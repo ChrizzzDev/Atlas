@@ -90,7 +90,7 @@ fn execute_tree(cmd cli.Command) ! {
 	}
 
 	project := scan_project_structure(root, depth)!
-	tree := build_tree(project)
+	tree := build_tree_with_depth(project, depth)
 
-	render_tree(tree, depth)
+	render_tree(tree, depth)!
 }

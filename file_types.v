@@ -71,16 +71,31 @@ const file_type_categories = [
 	},
 ]
 
+const file_type_extension_index = build_file_type_extension_index()
+
+fn build_file_type_extension_index() map[string]int {
+	mut index := map[string]int{}
+	for i, file_type in file_type_categories {
+		for extension in file_type.extensions {
+			lower_extension := extension.to_lower()
+			// Earlier categories keep their existing precedence.
+			if lower_extension !in index {
+				index[lower_extension] = i
+			}
+		}
+	}
+	return index
+}
+
 fn categorize_file(path string, extension string) string {
 	lower_ext := extension.to_lower()
+	extension_category := file_type_extension_index[lower_ext] or { file_type_categories.len }
 	mut lower_path := ''
 	mut path_ready := false
 
-	for ft in file_type_categories {
-		for ext in ft.extensions {
-			if lower_ext == ext {
-				return ft.category
-			}
+	for i, ft in file_type_categories {
+		if i == extension_category {
+			return ft.category
 		}
 
 		if ft.patterns.len == 0 { continue }

@@ -6,7 +6,7 @@ Atlas analyzes a codebase and builds a map of its **structure and composition**,
 
 <p align="center">
   <img src="https://img.shields.io/badge/status-in_development-orange?style=for-the-badge" alt="Status">
-  <img src="https://img.shields.io/badge/version-0.2.0-blue?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/version-0.2.1-blue?style=for-the-badge" alt="Version">
   <img src="https://img.shields.io/badge/language-Vlang-5C6BC0?style=for-the-badge&logo=v&link=google.com" alt="V">
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License">
 </p>

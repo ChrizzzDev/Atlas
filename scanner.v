@@ -55,6 +55,27 @@ struct FileScan {
 	is_binary bool
 }
 
+// File analyzers receive borrowed chunks while Atlas counts lines and size.
+// A chunk is only valid until the next read. Keep per-file results provisional
+// until finish_file, because a later chunk can reveal a binary file or fail.
+pub interface FileAnalyzer {
+mut:
+	start_file(path string, extension string)
+	consume_chunk(chunk []u8)
+	finish_file(file FileInfo)
+	discard_file()
+}
+
+struct NoopFileAnalyzer {}
+
+fn (mut _ NoopFileAnalyzer) start_file(_ string, _ string) {}
+
+fn (mut _ NoopFileAnalyzer) consume_chunk(_ []u8) {}
+
+fn (mut _ NoopFileAnalyzer) finish_file(_ FileInfo) {}
+
+fn (mut _ NoopFileAnalyzer) discard_file() {}
+
 struct ScanOptions {
 pub mut:
 	self_path    string
@@ -62,16 +83,45 @@ pub mut:
 	read_content bool
 }
 
-fn scan_file_contents(path string, mut buffer []u8) ?FileScan {
+enum ScanEntryKind {
+	unknown
+	file
+	directory
+	link
+}
+
+struct ScanEntry {
+	name string
+	kind ScanEntryKind
+}
+
+fn list_scan_entries(path string) ![]ScanEntry {
+	$if linux {
+		return list_scan_entries_linux(path)
+	} $else {
+		names := os.ls(path)!
+		mut entries := []ScanEntry{cap: names.len}
+		for name in names {
+			entries << ScanEntry{ name: name }
+		}
+		return entries
+	}
+}
+
+fn scan_file_contents[A FileAnalyzer](path string, relative_path string, extension string, mut buffer []u8, mut analyzer A) ?FileScan {
 	mut file := os.open(path) or { return none }
 	defer { file.close() }
+	analyzer.start_file(relative_path, extension)
 
 	mut total_size := u64(0)
 	mut lines := 0
 	mut last_byte := u8(0)
 
 	for {
-		m := file.read(mut buffer) or { break }
+		m := file.read(mut buffer) or {
+			analyzer.discard_file()
+			return none
+		}
 		if m == 0 {
 			break
 		}
@@ -81,15 +131,16 @@ fn scan_file_contents(path string, mut buffer []u8) ?FileScan {
 			bbyte := buffer[i]
 
 			if bbyte == 0 {
+				analyzer.discard_file()
 				return FileScan{ is_binary: true }
 			}
 
 			if bbyte == `\n` {
 				lines++
 			}
-
-			last_byte = buffer[m - 1]
 		}
+		last_byte = buffer[m - 1]
+		analyzer.consume_chunk(buffer[..m])
 	}
 
 	if total_size > 0 && last_byte != `\n` {
@@ -112,70 +163,22 @@ fn is_ignored_file(name string, ext string) bool {
 }
 
 pub fn scan_project(root string) !Project {
-	return scan_project_with_options(root, ScanOptions{ read_content: true })
+	mut analyzer := NoopFileAnalyzer{}
+	return scan_project_with_analyzer(root, mut analyzer)
 }
 
 pub fn scan_project_structure(root string, max_depth int) !Project {
-	return scan_project_with_options(root, ScanOptions{ max_depth: max_depth, read_content: false })
+	mut analyzer := NoopFileAnalyzer{}
+	return scan_project_with_options(root, ScanOptions{ max_depth: max_depth, read_content: false }, mut analyzer)
 }
 
-fn scan_structure_directory(path string, relative_path string, depth int, opts ScanOptions, mut ctx Project, mut buffer []u8) {
-	entries := os.ls(path) or { return }
-
-	for entry in entries {
-		full_path := os.join_path(path, entry)
-		ext := os.file_ext(entry)
-
-		if os.is_link(full_path) {
-			continue
-		}
-
-		if os.is_dir(full_path) {
-			if is_ignored_directory(entry) {
-				continue
-			}
-
-			dir_path := os.join_path(relative_path, entry)
-			ctx.directories << dir_path
-
-			if opts.max_depth <= 0 || depth + 1 < opts.max_depth {
-				scan_structure_directory(full_path, dir_path, depth + 1, opts, mut ctx, mut buffer)
-			}
-			continue
-		}
-
-		if full_path == opts.self_path {
-			continue
-		}
-
-		if is_ignored_file(entry, ext) {
-			continue
-		}
-
-		file_path := os.join_path(relative_path, entry)
-
-		if !opts.read_content {
-			ctx.files << FileInfo{
-				path: file_path
-			}
-			continue
-		}
-
-		scan := scan_file_contents(full_path, mut buffer) or { continue }
-		if scan.is_binary {
-			continue
-		}
-
-		ctx.files << FileInfo{
-			path:      file_path
-			extension: ext
-			size:      scan.size
-			lines:     scan.lines
-		}
-	}
+// Consumers such as dependency analysis can inspect files during the scan
+// without reopening them. Only finish_file confirms an accepted text file.
+pub fn scan_project_with_analyzer[A FileAnalyzer](root string, mut analyzer A) !Project {
+	return scan_project_with_options(root, ScanOptions{ read_content: true }, mut analyzer)
 }
 
-fn scan_project_with_options(root string, opts_in ScanOptions) !Project {
+fn scan_project_with_options[A FileAnalyzer](root string, opts_in ScanOptions, mut analyzer A) !Project {
 	if !os.exists(root) || !os.is_dir(root) {
 		return error('invalid root')
 	}
@@ -190,44 +193,51 @@ fn scan_project_with_options(root string, opts_in ScanOptions) !Project {
 	}
 
 	mut buffer := []u8{len: if opts.read_content { 65536 } else { 0 }}
-	scan_directory(project.root, '', 0, opts, mut &project, mut buffer)
+	scan_directory(project.root, '', 0, opts, mut &project, mut buffer, mut analyzer)
 
 	return project
 }
 
-fn scan_directory(path string, relative_path string, depth int, opts ScanOptions, mut ctx Project, mut buffer []u8) {
-	entries := os.ls(path) or { return }
+fn scan_directory[A FileAnalyzer](path string, relative_path string, depth int, opts ScanOptions, mut ctx Project, mut buffer []u8, mut analyzer A) {
+	entries := list_scan_entries(path) or { return }
 
 	for entry in entries {
-		full_path := os.join_path(path, entry)
-		ext := os.file_ext(entry)
+		full_path := os.join_path(path, entry.name)
+		ext := os.file_ext(entry.name)
+		if entry.kind == .link {
+			continue
+		}
 
-		mut is_directory := false
+		mut is_directory := entry.kind == .directory
 
 		$if windows {
-			if os.is_link(full_path) {
-				continue
+			if entry.kind == .unknown {
+				if os.is_link(full_path) {
+					continue
+				}
+				is_directory = os.is_dir(full_path)
 			}
-			is_directory = os.is_dir(full_path)
 		} $else {
-			metadata := os.lstat(full_path) or { continue }
-			kind := metadata.get_filetype()
-			if kind == .symbolic_link {
-				continue
+			if entry.kind == .unknown {
+				metadata := os.lstat(full_path) or { continue }
+				kind := metadata.get_filetype()
+				if kind == .symbolic_link {
+					continue
+				}
+				is_directory = kind == .directory
 			}
-			is_directory = kind == .directory
 		}
 
 		if is_directory {
-			if is_ignored_directory(entry) {
+			if is_ignored_directory(entry.name) {
 				continue
 			}
 
-			dir_path := os.join_path(relative_path, entry)
+			dir_path := os.join_path(relative_path, entry.name)
 			ctx.directories << dir_path
 
-			if opts.max_depth <= 0 || depth < opts.max_depth {
-				scan_directory(full_path, dir_path, depth + 1, opts, mut ctx, mut buffer)
+			if opts.max_depth <= 0 || depth + 1 < opts.max_depth {
+				scan_directory(full_path, dir_path, depth + 1, opts, mut ctx, mut buffer, mut analyzer)
 			}
 
 			continue
@@ -237,11 +247,11 @@ fn scan_directory(path string, relative_path string, depth int, opts ScanOptions
 			continue
 		}
 
-		if is_ignored_file(entry, ext) {
+		if is_ignored_file(entry.name, ext) {
 			continue
 		}
 
-		file_path := os.join_path(relative_path, entry)
+		file_path := os.join_path(relative_path, entry.name)
 
 		if !opts.read_content {
 			ctx.files << FileInfo{
@@ -250,16 +260,18 @@ fn scan_directory(path string, relative_path string, depth int, opts ScanOptions
 			continue
 		}
 
-		scan := scan_file_contents(full_path, mut buffer) or { continue } // couldn't read
+		scan := scan_file_contents(full_path, file_path, ext, mut buffer, mut analyzer) or { continue }
 		if scan.is_binary {
 			continue
 		}
 
-		ctx.files << FileInfo{
+		file_info := FileInfo{
 			path:      file_path
 			extension: ext
 			size:      scan.size
 			lines:     scan.lines
 		}
+		ctx.files << file_info
+		analyzer.finish_file(file_info)
 	}
 }
