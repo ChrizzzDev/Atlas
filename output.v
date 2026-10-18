@@ -1,7 +1,7 @@
 module main
 
 import term
-import json2
+import x.json2 as json2
 import strconv
 
 struct Info {
@@ -246,3 +246,4 @@ mut:
 	size  i64
 	lines int
 }
+
