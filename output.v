@@ -1,8 +1,7 @@
 module main
 
 import term
-import json2
-import strconv
+import json
 
 struct Info {
 	label string
@@ -54,12 +53,12 @@ fn human_readable_output(project Project, stats []ExtensionStat, show_extensions
 	}
 
 	print_info([
-		Info{ label: 'Project', value: project.name }
-		Info{ label: 'Root', value: project.root }
-		Info{ label: 'Files', value: strconv.format_thousands(project.files.len, ' ') }
-		Info{ label: 'Directories', value: strconv.format_thousands(project.directories.len, ' ') }
-		Info{ label: 'Size', value: format_size(project_size) }
-		Info{ label: 'Lines', value: strconv.format_thousands(loc, ' ') },
+		Info{ label: 'Project', value: project.name },
+		Info{ label: 'Root', value: project.root },
+		Info{ label: 'Files', value: format_count(project.files.len) },
+		Info{ label: 'Directories', value: format_count(project.directories.len) },
+		Info{ label: 'Size', value: format_size(project_size) },
+		Info{ label: 'Lines', value: format_count(loc) },
 	])
 
 	// Languages
@@ -106,7 +105,7 @@ fn json_output(project Project) {
 
 	file_type_dist := get_file_type_distribution(project)
 
-	println(json2.encode(&JsonOutput{
+	println(json.encode(&JsonOutput{
 		project:     project.name
 		root:        project.root
 		files:       project.files.len
@@ -115,9 +114,7 @@ fn json_output(project Project) {
 		lines:       loc
 		languages:   get_language_stats(used_languages, project.files.len)
 		file_types:  file_type_dist
-	},
-		escape_unicode: true
-	))
+	}))
 }
 
 fn print_info(items []Info) {
@@ -148,7 +145,7 @@ fn print_languages(stats []LanguageStats) {
 		padding := ' '.repeat(width - lang.name.len + 2)
 		files := if lang.files == 1 { 'file' } else { 'files' }
 
-		println('  ${lang.name}${padding}${strconv.format_thousands(lang.files, ' ')} ${files} (${lang.percent:.2f}%)')
+		println('  ${lang.name}${padding}${format_count(lang.files)} ${files} (${lang.percent:.2f}%)')
 	}
 }
 
@@ -167,7 +164,7 @@ fn print_extensions(stats []ExtensionStat) {
 		padding := ' '.repeat(width - extension.len + 2)
 		files := if stat.files == 1 { 'file' } else { 'files' }
 
-		println('  ${extension}${padding}${strconv.format_thousands(stat.files, ' ')} ${files}')
+		println('  ${extension}${padding}${format_count(stat.files)} ${files}')
 	}
 }
 
@@ -183,7 +180,11 @@ fn print_directory_summary(project Project) {
 		if top_dir == '' {
 			continue
 		}
-		mut stat := dir_stats[top_dir] or { DirStat{ name: top_dir } }
+		mut stat := dir_stats[top_dir] or {
+			DirStat{
+				name: top_dir
+			}
+		}
 		stat.files++
 		stat.size += file.size
 		stat.lines += file.lines
@@ -195,7 +196,11 @@ fn print_directory_summary(project Project) {
 		if top_dir == '' {
 			continue
 		}
-		mut stat := dir_stats[top_dir] or { DirStat{ name: top_dir } }
+		mut stat := dir_stats[top_dir] or {
+			DirStat{
+				name: top_dir
+			}
+		}
 		dir_stats[top_dir] = stat
 	}
 
@@ -227,7 +232,7 @@ fn print_directory_summary(project Project) {
 		}
 		padding := ' '.repeat(width - d.name.len + 2)
 		size_str := format_size(d.size)
-		println('  ${d.name}${padding}${strconv.format_thousands(d.files, ' ')} files  ${size_str}  ${d.lines} lines')
+		println('  ${d.name}${padding}${format_count(d.files)} files  ${size_str}  ${d.lines} lines')
 	}
 }
 

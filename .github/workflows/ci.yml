@@ -28,14 +28,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install V
-        uses: vlang/setup-v@v1.7
-        with:
-          stable: true
-          clean: true
+      # Pin the official release binaries: building old stable sources with
+      # today's vc bootstrap can fail before Atlas is compiled.
+      - name: Install V 0.5.2
+        shell: bash
+        run: |
+          case "$RUNNER_OS/$RUNNER_ARCH" in
+            Linux/X64) archive=v_linux.zip ;;
+            Linux/ARM64) archive=v_linux_arm64.zip ;;
+            macOS/ARM64) archive=v_macos_arm64.zip ;;
+            macOS/X64) archive=v_macos_x86_64.zip ;;
+            Windows/X64) archive=v_windows.zip ;;
+            *) exit 1 ;;
+          esac
+          install_dir="$RUNNER_TEMP/atlas-v"
+          mkdir -p "$install_dir"
+          curl -fsSL "https://github.com/vlang/v/releases/download/0.5.2/$archive" -o "$install_dir/v.zip"
+          unzip -q "$install_dir/v.zip" -d "$install_dir"
+          echo "$install_dir/v" >> "$GITHUB_PATH"
 
       - name: Test
         run: v test .
 
       - name: Build
         run: v .
+
+      - name: Check changed V formatting
+        run: v fmt -verify deps.v deps_test.v main.v scanner.v output.v file_types.v utils.v

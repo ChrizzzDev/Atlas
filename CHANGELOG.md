@@ -1,6 +1,25 @@
 # Changelog
 
 All notable changes to Atlas will be documented here.
+## [Unreleased]
+
+### Added
+- Initial `atlas deps [path] --format human|json` for JavaScript, TypeScript and V.
+- Dependency occurrence records, per-file export counts, deterministic output,
+  local target resolution and internal/external classification.
+- Single-read dependency analyzer using the existing `FileAnalyzer` lifecycle;
+  provisional buffers are discarded for binary files and failed reads.
+- Tests for import forms, lexical noise, chunk boundaries, resolution and binary rejection.
+
+### Fixed
+- Dispatch scanners through the existing mutable FileAnalyzer interface to
+  avoid stable V's recursive-generic checker failure.
+- Use the standard JSON module and a local count formatter to build on V 0.5.2;
+  JSON fields and human count separators are preserved.
+- Install pinned official V 0.5.2 binaries in CI instead of bootstrapping stable
+  sources with an incompatible current vc compiler. Tests also execute the CLI
+  and preserve stats/tree regression coverage.
+
 ## [0.2.1] - 2026-10-16
 
 ### Added
@@ -55,3 +74,4 @@ All notable changes to Atlas will be documented here.
 - Ignored directories for generated/dependency files
 - Filtering of common binary artifacts
 - Handling of empty projects and filesystem errors
+

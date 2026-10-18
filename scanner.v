@@ -102,13 +102,15 @@ fn list_scan_entries(path string) ![]ScanEntry {
 		names := os.ls(path)!
 		mut entries := []ScanEntry{cap: names.len}
 		for name in names {
-			entries << ScanEntry{ name: name }
+			entries << ScanEntry{
+				name: name
+			}
 		}
 		return entries
 	}
 }
 
-fn scan_file_contents[A FileAnalyzer](path string, relative_path string, extension string, mut buffer []u8, mut analyzer A) ?FileScan {
+fn scan_file_contents(path string, relative_path string, extension string, mut buffer []u8, mut analyzer FileAnalyzer) ?FileScan {
 	mut file := os.open(path) or { return none }
 	defer { file.close() }
 	analyzer.start_file(relative_path, extension)
@@ -135,7 +137,9 @@ fn scan_file_contents[A FileAnalyzer](path string, relative_path string, extensi
 
 			if bbyte == 0 {
 				analyzer.discard_file()
-				return FileScan{ is_binary: true }
+				return FileScan{
+					is_binary: true
+				}
 			}
 
 			if bbyte == `\n` {
@@ -172,16 +176,17 @@ pub fn scan_project(root string) !Project {
 
 pub fn scan_project_structure(root string, max_depth int) !Project {
 	mut analyzer := NoopFileAnalyzer{}
-	return scan_project_with_options(root, ScanOptions{ max_depth: max_depth, read_content: false }, mut analyzer)
+	return scan_project_with_options(root, ScanOptions{ max_depth: max_depth, read_content: false }, mut
+		analyzer)
 }
 
 // Consumers such as dependency analysis can inspect files during the scan
 // without reopening them. Only finish_file confirms an accepted text file.
-pub fn scan_project_with_analyzer[A FileAnalyzer](root string, mut analyzer A) !Project {
+pub fn scan_project_with_analyzer(root string, mut analyzer FileAnalyzer) !Project {
 	return scan_project_with_options(root, ScanOptions{ read_content: true }, mut analyzer)
 }
 
-fn scan_project_with_options[A FileAnalyzer](root string, opts_in ScanOptions, mut analyzer A) !Project {
+fn scan_project_with_options(root string, opts_in ScanOptions, mut analyzer FileAnalyzer) !Project {
 	if !os.exists(root) || !os.is_dir(root) {
 		return error('invalid root')
 	}
@@ -195,13 +200,14 @@ fn scan_project_with_options[A FileAnalyzer](root string, opts_in ScanOptions, m
 		name: os.base(abs_path)
 	}
 
-	mut buffer := []u8{len: if opts.read_content { 65536 } else { 0 }}
-	scan_directory(project.root, '', 0, opts, mut &project, mut buffer, mut analyzer)
+	buffer_size := if opts.read_content { int(65536) } else { 0 }
+	mut buffer := []u8{len: buffer_size}
+	scan_directory(project.root, '', 0, opts, mut project, mut buffer, mut analyzer)
 
 	return project
 }
 
-fn scan_directory[A FileAnalyzer](path string, relative_path string, depth int, opts ScanOptions, mut ctx Project, mut buffer []u8, mut analyzer A) {
+fn scan_directory(path string, relative_path string, depth int, opts ScanOptions, mut ctx Project, mut buffer []u8, mut analyzer FileAnalyzer) {
 	entries := list_scan_entries(path) or { return }
 
 	for entry in entries {
@@ -240,7 +246,8 @@ fn scan_directory[A FileAnalyzer](path string, relative_path string, depth int, 
 			ctx.directories << dir_path
 
 			if opts.max_depth <= 0 || depth + 1 < opts.max_depth {
-				scan_directory(full_path, dir_path, depth + 1, opts, mut ctx, mut buffer, mut analyzer)
+				scan_directory(full_path, dir_path, depth + 1, opts, mut ctx, mut buffer, mut
+					analyzer)
 			}
 
 			continue
@@ -263,7 +270,9 @@ fn scan_directory[A FileAnalyzer](path string, relative_path string, depth int, 
 			continue
 		}
 
-		scan := scan_file_contents(full_path, file_path, ext, mut buffer, mut analyzer) or { continue }
+		scan := scan_file_contents(full_path, file_path, ext, mut buffer, mut analyzer) or {
+			continue
+		}
 		if scan.is_binary {
 			continue
 		}

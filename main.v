@@ -18,7 +18,7 @@ fn main() {
 				description:   'Show extensions statistics.'
 				flag:          .bool
 				default_value: ['false']
-			}
+			},
 			cli.Flag{
 				name:          'format'
 				abbrev:        'f'
@@ -28,6 +28,21 @@ fn main() {
 			},
 		]
 		commands:    [
+			cli.Command{
+				name:        'deps'
+				description: 'Inspect JavaScript, TypeScript and V dependencies.'
+				usage:       '[path]'
+				execute:     execute_deps
+				flags:       [
+					cli.Flag{
+						name:          'format'
+						abbrev:        'f'
+						description:   'Output format: human or json.'
+						flag:          .string
+						default_value: ['human']
+					},
+				]
+			},
 			cli.Command{
 				name:        'tree'
 				description: 'Display the project structure.'
@@ -57,9 +72,7 @@ fn execute_stats(cmd cli.Command) ! {
 		'.'
 	}
 
-	format := cmd.flags.get_string('format') or {
-		'human'
-	}
+	format := cmd.flags.get_string('format') or { 'human' }
 
 	if format !in output_formats {
 		println(term.fail_message('! Unknown flag value: ${format}'))
@@ -85,9 +98,7 @@ fn execute_tree(cmd cli.Command) ! {
 		'.'
 	}
 
-	depth := cmd.flags.get_int('depth') or {
-		0
-	}
+	depth := cmd.flags.get_int('depth') or { 0 }
 
 	project := scan_project_structure(root, depth)!
 	tree := build_tree_with_depth(project, depth)
