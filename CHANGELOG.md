@@ -1,6 +1,16 @@
 # Changelog
 
 All notable changes to Atlas will be documented here.
+## [Unreleased]
+
+### Added
+- Initial `atlas deps [path] --format human|json` for JavaScript, TypeScript and V.
+- Dependency occurrence records, per-file export counts, deterministic output,
+  local target resolution and internal/external classification.
+- Single-read dependency analyzer using the existing `FileAnalyzer` lifecycle;
+  provisional buffers are discarded for binary files and failed reads.
+- Tests for import forms, lexical noise, chunk boundaries, resolution and binary rejection.
+
 ## [0.2.1] - 2026-10-16
 
 ### Added
@@ -55,3 +65,4 @@ All notable changes to Atlas will be documented here.
 - Ignored directories for generated/dependency files
 - Filtering of common binary artifacts
 - Handling of empty projects and filesystem errors
+

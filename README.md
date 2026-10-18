@@ -671,3 +671,53 @@ See [`LICENSE`](LICENSE) for the complete license text.
   <br>
   <sub>Map your codebase. Understand your project.</sub>
 </p>
+
+
+
+### Dependency inspection (initial v0.3 implementation)
+
+```sh
+atlas deps                         # current directory
+atlas deps ./project
+atlas deps --format json ./project
+atlas deps -f human ./project
+```
+
+Supports `.js`, `.jsx`, `.mjs`, `.cjs`, `.ts`, `.tsx`, `.mts`, `.cts` and `.v`.
+JavaScript/TypeScript detection includes static and side-effect imports,
+`export ... from`, literal `import()` and `require()`, including TypeScript
+`import x = require(...)`. Local export declarations are counted per file;
+V counts public declarations and detects single/grouped imports with aliases.
+No symbol names or graphs are collected. References keep their original
+specifier, occurrence line (the source literal/module name), file and kind.
+Repeated references are preserved. Results are sorted deterministically.
+
+Relative JS/TS specifiers (`./`, `../`) are internal even when unresolved.
+Targets are matched against the accepted scan file index, trying the exact
+path, source extensions and directory indexes, plus `.js` to `.ts`/`.tsx`.
+V imports are internal when a matching module directory with accepted `.v`
+files exists in the root, `src/` or `modules/`. All other specifiers are
+external, including standard-library imports. An empty `target` means that
+Atlas did not resolve a local target; it does not prove a dependency is missing.
+
+JSON uses `schema_version: 1`, project/root metadata, `files` (path, language,
+export count) and `dependencies` (file, line, kind, specifier, scope, target).
+Human output groups references by internal/external scope and marks unresolved
+internal references. Both formats use the same results.
+
+The analyzer receives the scanner's existing chunks, buffers only the current
+supported file, and parses it at `finish_file`. Binary files and failed reads
+discard that buffer. Final resolution uses the scan index and never reopens
+source files. The ordinary stats/tree commands retain their no-op analyzer.
+Memory is proportional to the current source file plus retained results/tokens.
+
+This is lexical inspection, not a compiler or package-manager resolver.
+It does not read package manifests, lockfiles, tsconfig aliases, workspaces,
+V module metadata or installed dependencies. Bare JS aliases are consequently
+classified as external; V external imports do not distinguish stdlib from
+third-party modules. Computed specifiers, escaped module names, template
+literals (including their interpolations), JSX expressions embedded in text,
+CommonJS exports and dynamic-import options are not analyzed. Regex skipping
+uses expression context heuristics; unusual regex/division ambiguities and
+shadowed `require` names can need a full parser. No code is executed and no
+network requests are made during dependency inspection.

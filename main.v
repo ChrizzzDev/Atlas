@@ -28,6 +28,19 @@ fn main() {
 			},
 		]
 		commands:    [
+            cli.Command{
+                name: 'deps'
+                description: 'Inspect JavaScript, TypeScript and V dependencies.'
+                usage: '[path]'
+                execute: execute_deps
+                flags: [cli.Flag{
+                    name: 'format'
+                    abbrev: 'f'
+                    description: 'Output format: human or json.'
+                    flag: .string
+                    default_value: ['human']
+                }]
+            },
 			cli.Command{
 				name:        'tree'
 				description: 'Display the project structure.'
@@ -94,3 +107,4 @@ fn execute_tree(cmd cli.Command) ! {
 
 	render_tree(tree, depth)!
 }
+
