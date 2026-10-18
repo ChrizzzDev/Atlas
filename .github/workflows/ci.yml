@@ -53,5 +53,5 @@ jobs:
       - name: Build
         run: v .
 
-      - name: Check dependency formatting
+      - name: Check changed V formatting
         run: v fmt -verify deps.v deps_test.v main.v scanner.v output.v file_types.v utils.v

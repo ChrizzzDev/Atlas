@@ -98,8 +98,9 @@ fn categorize_file(path string, extension string) string {
 			return ft.category
 		}
 
-		if ft.patterns.len == 0 { continue
-		 }
+		if ft.patterns.len == 0 {
+			continue
+		}
 
 		if !path_ready {
 			lower_path = path.to_lower()
