@@ -108,7 +108,7 @@ fn list_scan_entries(path string) ![]ScanEntry {
 	}
 }
 
-fn scan_file_contents[A FileAnalyzer](path string, relative_path string, extension string, mut buffer []u8, mut analyzer A) ?FileScan {
+fn scan_file_contents[A](path string, relative_path string, extension string, mut buffer []u8, mut analyzer A) ?FileScan {
 	mut file := os.open(path) or { return none }
 	defer { file.close() }
 	analyzer.start_file(relative_path, extension)
@@ -177,11 +177,11 @@ pub fn scan_project_structure(root string, max_depth int) !Project {
 
 // Consumers such as dependency analysis can inspect files during the scan
 // without reopening them. Only finish_file confirms an accepted text file.
-pub fn scan_project_with_analyzer[A FileAnalyzer](root string, mut analyzer A) !Project {
+pub fn scan_project_with_analyzer[A](root string, mut analyzer A) !Project {
 	return scan_project_with_options(root, ScanOptions{ read_content: true }, mut analyzer)
 }
 
-fn scan_project_with_options[A FileAnalyzer](root string, opts_in ScanOptions, mut analyzer A) !Project {
+fn scan_project_with_options[A](root string, opts_in ScanOptions, mut analyzer A) !Project {
 	if !os.exists(root) || !os.is_dir(root) {
 		return error('invalid root')
 	}
@@ -201,7 +201,7 @@ fn scan_project_with_options[A FileAnalyzer](root string, opts_in ScanOptions, m
 	return project
 }
 
-fn scan_directory[A FileAnalyzer](path string, relative_path string, depth int, opts ScanOptions, mut ctx Project, mut buffer []u8, mut analyzer A) {
+fn scan_directory[A](path string, relative_path string, depth int, opts ScanOptions, mut ctx Project, mut buffer []u8, mut analyzer A) {
 	entries := list_scan_entries(path) or { return }
 
 	for entry in entries {
@@ -278,3 +278,4 @@ fn scan_directory[A FileAnalyzer](path string, relative_path string, depth int, 
 		analyzer.finish_file(file_info)
 	}
 }
+

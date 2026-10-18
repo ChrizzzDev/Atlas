@@ -236,10 +236,10 @@ fn (mut a DependencyAnalyzer) parse_js(t []DependencyToken) int {
 		if token.text !in ['import', 'export'] {
 			continue
 		}
-		if token.text == 'export' { exports++ }
 		if i + 1 >= t.len || t[i + 1].text in ['(', '.', ':'] {
 			continue
 		}
+		if token.text == 'export' { exports++ }
 		if token.text == 'import' && t[i + 1].kind == 'string' {
 			a.add_dep(t[i + 1], 'import')
 			continue
@@ -328,6 +328,8 @@ fn dependency_report(project Project, a DependencyAnalyzer) DependencyReport {
 			mut candidates := [base]
 			for ext in ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs', '.json'] {
 				candidates << base + ext
+			}
+			for ext in ['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs', '.json'] {
 				candidates << base + '/index' + ext
 			}
 			// Node-style .js specifiers commonly refer to TypeScript source.
