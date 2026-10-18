@@ -47,12 +47,12 @@ jobs:
           unzip -q "$install_dir/v.zip" -d "$install_dir"
           echo "$install_dir/v" >> "$GITHUB_PATH"
 
-      - name: Check dependency formatting
-        run: v fmt -diff deps.v deps_test.v main.v
-
       - name: Test
         run: v test .
 
       - name: Build
         run: v .
 
+
+      - name: Check dependency formatting
+        run: v fmt -diff deps.v deps_test.v main.v
