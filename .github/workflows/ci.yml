@@ -47,6 +47,14 @@ jobs:
           unzip -q "$install_dir/v.zip" -d "$install_dir"
           echo "$install_dir/v" >> "$GITHUB_PATH"
 
+      - name: Share Linux test compiler
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-test-compiler
+          path: ${{ runner.temp }}/atlas-v/v.zip
+          retention-days: 1
+
       - name: Test
         run: v test .
 

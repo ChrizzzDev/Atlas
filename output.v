@@ -1,7 +1,7 @@
 module main
 
 import term
-import x.json2 as json2
+import json
 import strconv
 
 struct Info {
@@ -106,7 +106,7 @@ fn json_output(project Project) {
 
 	file_type_dist := get_file_type_distribution(project)
 
-	println(json2.encode(&JsonOutput{
+	println(json.encode(&JsonOutput{
 		project:     project.name
 		root:        project.root
 		files:       project.files.len
@@ -115,9 +115,7 @@ fn json_output(project Project) {
 		lines:       loc
 		languages:   get_language_stats(used_languages, project.files.len)
 		file_types:  file_type_dist
-	},
-		escape_unicode: true
-	))
+	}))
 }
 
 fn print_info(items []Info) {
