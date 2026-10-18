@@ -171,6 +171,7 @@ fn dependency_tokens(source []u8, is_v bool) []DependencyToken {
 				if source[i] == `\n` { line++ }
 				if source[i] == `\\` {
 					escaped = true
+					if i + 1 < source.len && source[i + 1] == `\n` { line++ }
 					i += 2
 				} else {
 					i++
@@ -254,7 +255,8 @@ fn (mut a DependencyAnalyzer) parse_js(t []DependencyToken) int {
 			}
 			if t[j].text == '{' { braces++ }
 			if t[j].text == '}' { braces-- }
-			if t[j].text in [';', '=', '('] || (braces == 0 && t[j].kind == 'word' && t[j].text in ['const', 'let', 'var', 'function', 'class', 'interface', 'default', 'import', 'export']) {
+			if t[j].text in [';', '=', '('] || (braces == 0 && t[j].kind == 'word'
+				&& t[j].text in ['const', 'let', 'var', 'function', 'class', 'interface', 'default', 'import', 'export']) {
 				break
 			}
 			if braces < 0 {

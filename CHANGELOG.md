@@ -11,6 +11,15 @@ All notable changes to Atlas will be documented here.
   provisional buffers are discarded for binary files and failed reads.
 - Tests for import forms, lexical noise, chunk boundaries, resolution and binary rejection.
 
+### Fixed
+- Dispatch scanners through the existing mutable FileAnalyzer interface to
+  avoid stable V's recursive-generic checker failure.
+- Use the standard JSON module and a local count formatter to build on V 0.5.2;
+  JSON fields and human count separators are preserved.
+- Install pinned official V 0.5.2 binaries in CI instead of bootstrapping stable
+  sources with an incompatible current vc compiler. Tests also execute the CLI
+  and preserve stats/tree regression coverage.
+
 ## [0.2.1] - 2026-10-16
 
 ### Added

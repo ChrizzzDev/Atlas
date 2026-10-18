@@ -1,7 +1,6 @@
 module main
 
 import term
-import strconv
 
 pub struct FileType {
 pub:
@@ -24,8 +23,9 @@ const file_type_categories = [
 		extensions: ['.json', '.yaml', '.yml', '.toml', '.ini', '.cfg', '.conf', '.config', '.env',
 			'.properties']
 		patterns:   ['dockerfile', 'docker-compose', 'makefile', 'cmakelists.txt', 'build.gradle',
-			'pom.xml', 'package.json', 'tsconfig.json', 'vite.config', 'webpack.config', 'rollup.config',
-			'.eslintrc', '.prettierrc', '.gitignore', '.gitattributes', '.editorconfig']
+			'pom.xml', 'package.json', 'tsconfig.json', 'vite.config', 'webpack.config',
+			'rollup.config', '.eslintrc', '.prettierrc', '.gitignore', '.gitattributes',
+			'.editorconfig']
 		category:   'config'
 	},
 	FileType{
@@ -98,7 +98,8 @@ fn categorize_file(path string, extension string) string {
 			return ft.category
 		}
 
-		if ft.patterns.len == 0 { continue }
+		if ft.patterns.len == 0 { continue
+		 }
 
 		if !path_ready {
 			lower_path = path.to_lower()
@@ -163,6 +164,6 @@ fn print_file_type_distribution(distribution map[string]int, total_files int) {
 		padding := ' '.repeat(width - label.len + 2)
 		percent := f64(count) / f64(total_files) * 100
 		files := if count == 1 { 'file' } else { 'files' }
-		println('  ${label}${padding}${strconv.format_thousands(count, ' ')} ${files} (${percent:.1f}%)')
+		println('  ${label}${padding}${format_count(count)} ${files} (${percent:.1f}%)')
 	}
 }

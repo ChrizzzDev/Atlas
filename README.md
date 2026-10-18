@@ -371,11 +371,13 @@ The project intentionally starts with simple and deterministic analysis before i
 
 ### v0.3 • Dependencies
 
-- [ ] Import detection
-- [ ] Export detection
-- [ ] Internal dependencies
-- [ ] External dependencies
-- [ ] `atlas deps`
+- [x] Import detection (initial JavaScript/TypeScript and V support)
+- [x] Export detection (declaration counts and reexports)
+- [x] Internal dependencies (scan-index resolution)
+- [x] External dependencies (specifier classification)
+- [x] `atlas deps`
+
+The initial implementation and its resolver limits are documented below.
 
 ### v0.4 • Symbols
 

@@ -147,3 +147,10 @@ fn test_deps_cli_human_json_errors_and_existing_commands() {
 	assert tree.exit_code == 0, tree.output
 	assert tree.output.contains('main.ts')
 }
+
+fn test_count_formatting_on_stable_v() {
+	assert format_count(0) == '0'
+	assert format_count(999) == '999'
+	assert format_count(1000) == '1 000'
+	assert format_count(1234567) == '1 234 567'
+}
