@@ -119,6 +119,9 @@ fn scan_file_contents[A FileAnalyzer](path string, relative_path string, extensi
 
 	for {
 		m := file.read(mut buffer) or {
+			if err is os.Eof {
+				break
+			}
 			analyzer.discard_file()
 			return none
 		}

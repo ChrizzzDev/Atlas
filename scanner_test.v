@@ -44,4 +44,7 @@ fn test_scan_keeps_extensionless_files_and_skips_generated_directories() {
 	assert 'README' in paths
 	assert 'Dockerfile' in paths
 	assert '.next/output.js' !in paths
+	assert project.files.len == 2
+	assert project.files.any(it.path == 'README' && it.size == 13 && it.lines == 1)
+	assert project.files.any(it.path == 'Dockerfile' && it.size == 11 && it.lines == 1)
 }
