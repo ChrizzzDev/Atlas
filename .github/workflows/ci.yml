@@ -34,8 +34,12 @@ jobs:
           stable: true
           clean: true
 
+      - name: Check dependency formatting
+        run: v fmt -diff deps.v deps_test.v main.v
+
       - name: Test
         run: v test .
 
       - name: Build
         run: v .
+

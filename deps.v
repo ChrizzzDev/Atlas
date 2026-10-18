@@ -153,7 +153,7 @@ fn dependency_tokens(source []u8, is_v bool) []DependencyToken {
 
 fn (mut a DependencyAnalyzer) add_dep(t DependencyToken, kind string) {
 	if t.text.len == 0 { return }
-	a.dependencies << Dependency{ file: a.path, line: t.line, kind: kind, specifier: t.text }
+	a.dependencies << Dependency{ file: a.path, line: t.line, kind: kind, specifier: t.text.clone() }
 }
 
 fn (mut a DependencyAnalyzer) parse_js(t []DependencyToken) int {
@@ -183,7 +183,7 @@ fn (mut a DependencyAnalyzer) parse_js(t []DependencyToken) int {
 			}
 			if t[j].text == '{' { braces++ }
 			if t[j].text == '}' { braces-- }
-			if t[j].text in [';', '=', '('] || (t[j].kind == 'word' && t[j].text in ['const', 'let', 'var', 'function', 'class', 'interface', 'default', 'import', 'export']) { break }
+			if t[j].text in [';', '=', '('] || (braces == 0 && t[j].kind == 'word' && t[j].text in ['const', 'let', 'var', 'function', 'class', 'interface', 'default', 'import', 'export']) { break }
 			if braces < 0 { break }
 		}
 	}
@@ -278,6 +278,15 @@ fn render_dependencies(report DependencyReport, format string) string {
 		}
 		if count == 0 { lines << '  (none)' }
 	}
+    lines << '\nExports (declarations per file):'
+    mut exported_files := 0
+    for file in report.files {
+        if file.exports > 0 {
+            exported_files++
+            lines << '  ${file.path}: ${file.exports}'
+        }
+    }
+    if exported_files == 0 { lines << '  (none)' }
 	return lines.join('\n')
 }
 

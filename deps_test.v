@@ -16,12 +16,12 @@ fn analyze_dependency_source(source string, extension string, chunk_size int) De
 }
 
 fn test_js_dependency_forms_and_chunk_boundaries() {
-	source := "import './setup';\nimport type {\n Foo,\n from as other\n} from './types';\nexport { Foo } from '@scope/pkg/sub';\nexport * from 'other';\nconst p = import('lazy');\nconst r = require('node:fs');\nimport x = require('legacy');\nexport const answer = 42;\nimport(variable); require(prefix + '/path');\n"
+	source := "import './setup';\nimport type {\n Foo,\n from as other\n} from './types';\nexport { default as Foo } from '@scope/pkg/sub';\nexport * from 'other';\nconst p = import('lazy');\nconst r = require('node:fs');\nimport x = require('legacy');\nexport const answer = 42;\nimport(variable); require(prefix + '/path');\n"
 	for chunk_size in [1, 2, 7, 65536] {
 		a := analyze_dependency_source(source, '.ts', chunk_size)
 		assert a.dependencies.map(it.specifier) == ['./setup', './types', '@scope/pkg/sub', 'other', 'lazy', 'node:fs', 'legacy']
 		assert a.dependencies.map(it.kind) == ['import', 'import', 'reexport', 'reexport', 'dynamic_import', 'require', 'require']
-		assert a.dependencies[1].line == 6
+		assert a.dependencies[1].line == 5
 		assert a.files[0].exports == 3
 	}
 }
@@ -84,4 +84,52 @@ fn test_scanner_discards_late_binary_results_and_ignores_generated_files() {
 	assert r.dependencies.len == 1
 	assert r.dependencies[0].target == 'local.ts'
 	assert r.files.map(it.path) == ['local.ts', 'main.ts']
+}
+
+fn test_dependency_discard_and_supported_extensions() {
+	mut a := DependencyAnalyzer{}
+	a.start_file('bad.ts', '.ts')
+	a.consume_chunk("import 'bad';".bytes())
+	a.discard_file()
+	a.start_file('good.mts', '.mts')
+	a.consume_chunk("export * from 'good';".bytes())
+	a.finish_file(FileInfo{})
+	assert a.files.len == 1
+	assert a.dependencies.map(it.specifier) == ['good']
+	for ext in ['.tsx', '.jsx', '.mts', '.cts', '.mjs', '.cjs', '.ts', '.js', '.v'] {
+		assert deps_supported(ext)
+	}
+	assert !deps_supported('.json')
+}
+
+fn test_deps_cli_human_json_errors_and_existing_commands() {
+	root := os.join_path(os.temp_dir(), 'atlas deps cli ${os.getpid()}')
+	os.mkdir_all(root) or { panic(err) }
+	defer { os.rmdir_all(root) or {} }
+	mut binary := os.join_path(root, 'atlas')
+	$if windows { binary += '.exe' }
+	build := os.execute('${os.quoted_path(@VEXE)} -o ${os.quoted_path(binary)} ${os.quoted_path(@VMODROOT)}')
+	assert build.exit_code == 0, build.output
+	os.write_file(os.join_path(root, 'main.ts'), "import './missing'; export const n = 1;") or { panic(err) }
+	cmd := os.quoted_path(binary)
+	path := os.quoted_path(root)
+	result := os.execute('${cmd} deps -f json ${path}')
+	assert result.exit_code == 0, result.output
+	report := json.decode(DependencyReport, result.output) or { panic(err) }
+	assert report.dependencies.len == 1
+	assert report.dependencies[0].scope == 'internal'
+	human := os.execute('${cmd} deps ${path}')
+	assert human.exit_code == 0, human.output
+	assert human.output.contains('(unresolved)')
+	assert human.output.contains('Exports')
+	invalid := os.execute('${cmd} deps -f yaml ${path}')
+	assert invalid.exit_code != 0
+	missing := os.execute('${cmd} deps ${os.quoted_path(os.join_path(root, "absent"))}')
+	assert missing.exit_code != 0
+	stats := os.execute('${cmd} -f json ${path}')
+	assert stats.exit_code == 0, stats.output
+	assert stats.output.contains('"project"')
+	tree := os.execute('${cmd} tree -d 1 ${path}')
+	assert tree.exit_code == 0, tree.output
+	assert tree.output.contains('main.ts')
 }
